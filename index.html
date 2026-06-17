@@ -205,7 +205,7 @@ nav button.sel{color:var(--gold)}
   <section id="view-lb" class="view">
     <div class="lb-meta" id="lbmeta"></div>
     <div id="lbrows"></div>
-    <div class="bareme">Poules : <b>13 pts</b> exact · <i>6 pts</i> vainqueur/nul · Bonus : <b>21/15/10 pts</b><br>Phases finales : <i>6 pts</i> classement groupe · <b>5/9/15/22/33 pts</b> phase KO · Podium : <b>69/29/19 pts</b></div>
+    <div class="bareme">Poules : <b>4 pts</b> exact · <i>1 pt</i> vainqueur/nul · Bonus : <b>21/15/10 pts</b><br>Phases finales : <i>6 pts</i> classement groupe · <b>5/9/15/22/33 pts</b> phase KO · Podium : <b>69/29/19 pts</b></div>
   </section>
 
   <section id="view-phases" class="view">
@@ -299,8 +299,8 @@ async function init(){
 function outcome(a,b){ return a>b?1:(a<b?-1:0); }
 function pointsFor(pred,res){
   if(!pred||!res||!Array.isArray(res)) return null;
-  if(pred[0]===res[0]&&pred[1]===res[1]) return 13;
-  if(outcome(pred[0],pred[1])===outcome(res[0],res[1])) return 6;
+  if(pred[0]===res[0]&&pred[1]===res[1]) return 4;
+  if(outcome(pred[0],pred[1])===outcome(res[0],res[1])) return 1;
   return 0;
 }
 const QPTS = {}; DB.questions.forEach(q=>QPTS[q.row]=q.pts);
@@ -458,8 +458,8 @@ function totals(){
     if(!Array.isArray(res)) continue;
     DB.players.forEach(p=>{
       const pts = pointsFor(DB.preds[p][row], res);
-      if(pts===13){t[p].pts+=13;t[p].exact++;}
-      else if(pts===6){t[p].pts+=6;t[p].good++;}
+      if(pts===4){t[p].pts+=4;t[p].exact++;}
+      else if(pts===1){t[p].pts+=1;t[p].good++;}
     });
   }
   for(const qrow in bonus){
@@ -691,8 +691,8 @@ function renderDay(){
       let cls='', extra='';
       if(hasRes && pred){
         const pts=pointsFor(pred,res);
-        if(pts===13){cls=' exact';extra='<span class="pts">+13</span>';}
-        else if(pts===6){cls=' good';extra='<span class="pts">+6</span>';}
+        if(pts===4){cls=' exact';extra='<span class="pts">+4</span>';}
+        else if(pts===1){cls=' good';extra='<span class="pts">+1</span>';}
         else {cls=' zero';}
       }
       grid+='<div class="pcell'+cls+'"><div class="pname">'+p+'</div>'
