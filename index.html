@@ -517,6 +517,17 @@ const KO_DAYS=(()=>{
   for(const id in KO_DT){ const day=footballDay(KO_DT[id]); (by[day]=by[day]||[]).push(+id); }
   return Object.keys(by).sort().map(day=>({date:day, ids:by[day].sort((a,b)=>KO_DT[a].localeCompare(KO_DT[b])||a-b)}));
 })();
+// Affiches 1/16 d'Étoile (sans dates) mappées sur le vrai calendrier des 16es (matchs 73-88), dans l'ordre
+const KO16_DT=(()=>{
+  const r32=Object.keys(KO_DT).filter(n=>+n>=73&&+n<=88).sort((a,b)=>KO_DT[a].localeCompare(KO_DT[b]));
+  const dt={}; (KO16.matches||[]).forEach((m,i)=>{ if(r32[i]) dt[m.num]=KO_DT[r32[i]]; });
+  return dt;
+})();
+const KO16_DAYS=(()=>{
+  const by={};
+  for(const num in KO16_DT){ const day=footballDay(KO16_DT[num]); (by[day]=by[day]||[]).push(+num); }
+  return Object.keys(by).sort().map(day=>({date:day, nums:by[day].sort((a,b)=>KO16_DT[a].localeCompare(KO16_DT[b])||a-b)}));
+})();
 function roundOfMatch(id){ id=+id; return id<=88?'ko16':id<=96?'ko8':id<=100?'ko4':id<=102?'ko2':id===103?'third':'finalm'; }
 function roundLabel(mkey){ return mkey==='finalm'?'Finale':mkey==='third'?'Match 3e place':((KO_CAL.find(x=>x.key===mkey)||{}).label+' de finale'); }
 function slotLabel(id){
@@ -530,7 +541,10 @@ let selDay = (()=>{
   const today = new Date().toISOString().slice(0,10);
   const i = DB.days.findIndex(d=>d.date===today);
   if(i>=0) return i;
-  if(today > DB.days[DB.days.length-1].date) return 'ko16';
+  if(today > DB.days[DB.days.length-1].date){
+    const k = KO16_DAYS.find(d=>d.date>=today) || KO16_DAYS[KO16_DAYS.length-1];
+    return k ? 'ko16:'+k.date : 0;
+  }
   return 0;
 })();
 
@@ -544,11 +558,14 @@ function renderDaybar(){
     c.onclick=()=>{selDay=i;renderDaybar();renderDay();};
     bar.appendChild(c);
   });
-  const ck=document.createElement('button');
-  ck.className='chip'+('ko16'===selDay?' sel':'');
-  ck.innerHTML='<span class="n">1/16 de finale</span>';
-  ck.onclick=()=>{selDay='ko16';renderDaybar();renderDay();};
-  bar.appendChild(ck);
+  KO16_DAYS.forEach(d=>{
+    const key='ko16:'+d.date;
+    const c=document.createElement('button');
+    c.className='chip'+(key===selDay?' sel':'');
+    c.innerHTML='<span class="n">'+fmtDayChip(d.date)+'</span>';
+    c.onclick=()=>{selDay=key;renderDaybar();renderDay();};
+    bar.appendChild(c);
+  });
   const sel = bar.querySelector('.sel');
   if(sel) sel.scrollIntoView({inline:'center',block:'nearest'});
 }
@@ -651,39 +668,37 @@ function renderKoDate(date){
   day.ids.forEach(id=>{ wrap.appendChild(koMatchCard(roundOfMatch(id), id, B)); });
 }
 
-function renderKo16Day(){
-  const wrap=document.getElementById('daymatches');
-  wrap.innerHTML='';
-  const note=document.createElement('p');
-  note.style.cssText='font-size:.72rem;color:var(--muted);margin:0 2px 10px;line-height:1.5';
-  note.innerHTML='Pronostics au score. Saisie des résultats dans l’onglet <b>1/16</b>. <b>a.p.</b> = prolongation · <b>t.a.b.</b> = tirs au but.';
-  wrap.appendChild(note);
-  KO16.matches.forEach(m=>{
-    const res=ko16Results[m.num];
-    const resTxt=fmtKo16Res(res);
-    const card=document.createElement('div'); card.className='card';
-    let head='<div class="card-head"><div>'
-      +'<div class="mlabel">1/16 · M'+m.num+'</div>'
-      +'<div class="teams">'+m.t1+' – '+m.t2+'</div></div>'
-      +(resTxt?'<div class="result-pill">'+resTxt+'</div>':'<div class="result-pill empty">à jouer</div>')
-      +'</div>';
-    let grid='<div class="pgrid">';
-    DB.players.forEach(p=>{
-      const trio=(KO16.preds[p]||{})[m.num];
-      const pts=res?ko16Points(trio,res):0;
-      let cls='', extra='';
-      if(res){ if(pts){cls=(pts>=6?' exact':' good');extra='<span class="pts">+'+pts+'</span>';} else cls=' zero'; }
-      grid+='<div class="pcell'+cls+'"><div class="pname">'+p+'</div>'
-        +'<div class="psc" style="font-family:Inter;font-size:.66rem;font-weight:600;letter-spacing:0;line-height:1.25">'+fmtKo16(trio)+'</div>'+extra+'</div>';
-    });
-    grid+='</div>';
-    card.innerHTML=head+grid;
-    wrap.appendChild(card);
+function ko16Card(m){
+  const res=ko16Results[m.num];
+  const resTxt=fmtKo16Res(res);
+  const card=document.createElement('div'); card.className='card';
+  const kick=fmtKick(KO16_DT[m.num]);
+  let head='<div class="card-head"><div>'
+    +'<div class="mlabel">1/16 · M'+m.num+(kick?' · '+kick:'')+'</div>'
+    +'<div class="teams">'+m.t1+' – '+m.t2+'</div></div>'
+    +(resTxt?'<div class="result-pill">'+resTxt+'</div>':'<div class="result-pill empty">à jouer</div>')
+    +'</div>';
+  let grid='<div class="pgrid">';
+  DB.players.forEach(p=>{
+    const trio=(KO16.preds[p]||{})[m.num];
+    const pts=res?ko16Points(trio,res):0;
+    let cls='', extra='';
+    if(res){ if(pts){cls=(pts>=6?' exact':' good');extra='<span class="pts">+'+pts+'</span>';} else cls=' zero'; }
+    grid+='<div class="pcell'+cls+'"><div class="pname">'+p+'</div>'
+      +'<div class="psc" style="font-family:Inter;font-size:.66rem;font-weight:600;letter-spacing:0;line-height:1.25">'+fmtKo16(trio)+'</div>'+extra+'</div>';
   });
+  grid+='</div>';
+  card.innerHTML=head+grid;
+  return card;
+}
+function renderKo16Date(date){
+  const wrap=document.getElementById('daymatches'); wrap.innerHTML='';
+  const day=KO16_DAYS.find(d=>d.date===date); if(!day) return;
+  day.nums.forEach(num=>{ const m=KO16.matches.find(x=>x.num===num); if(m) wrap.appendChild(ko16Card(m)); });
 }
 function renderDay(){
   const wrap=document.getElementById('daymatches');
-  if(selDay==='ko16'){ renderKo16Day(); return; }
+  if(typeof selDay==='string' && selDay.startsWith('ko16:')){ renderKo16Date(selDay.slice(5)); return; }
   if(typeof selDay==='string'){ renderKoDate(selDay.slice(2)); return; }
   wrap.innerHTML='';
   DB.days[selDay].rows.forEach(row=>{
