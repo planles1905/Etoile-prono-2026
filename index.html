@@ -530,10 +530,7 @@ let selDay = (()=>{
   const today = new Date().toISOString().slice(0,10);
   const i = DB.days.findIndex(d=>d.date===today);
   if(i>=0) return i;
-  if(today > DB.days[DB.days.length-1].date){
-    const k = KO_DAYS.find(d=>d.date>=today) || KO_DAYS[KO_DAYS.length-1];
-    return 'k:'+k.date;
-  }
+  if(today > DB.days[DB.days.length-1].date) return 'ko16';
   return 0;
 })();
 
@@ -547,14 +544,11 @@ function renderDaybar(){
     c.onclick=()=>{selDay=i;renderDaybar();renderDay();};
     bar.appendChild(c);
   });
-  KO_DAYS.forEach(d=>{
-    const key='k:'+d.date;
-    const c=document.createElement('button');
-    c.className='chip'+(key===selDay?' sel':'');
-    c.innerHTML='<span class="n">'+fmtDayChip(d.date)+'</span>';
-    c.onclick=()=>{selDay=key;renderDaybar();renderDay();};
-    bar.appendChild(c);
-  });
+  const ck=document.createElement('button');
+  ck.className='chip'+('ko16'===selDay?' sel':'');
+  ck.innerHTML='<span class="n">1/16 de finale</span>';
+  ck.onclick=()=>{selDay='ko16';renderDaybar();renderDay();};
+  bar.appendChild(ck);
   const sel = bar.querySelector('.sel');
   if(sel) sel.scrollIntoView({inline:'center',block:'nearest'});
 }
@@ -657,8 +651,39 @@ function renderKoDate(date){
   day.ids.forEach(id=>{ wrap.appendChild(koMatchCard(roundOfMatch(id), id, B)); });
 }
 
+function renderKo16Day(){
+  const wrap=document.getElementById('daymatches');
+  wrap.innerHTML='';
+  const note=document.createElement('p');
+  note.style.cssText='font-size:.72rem;color:var(--muted);margin:0 2px 10px;line-height:1.5';
+  note.innerHTML='Pronostics au score. Saisie des résultats dans l’onglet <b>1/16</b>. <b>a.p.</b> = prolongation · <b>t.a.b.</b> = tirs au but.';
+  wrap.appendChild(note);
+  KO16.matches.forEach(m=>{
+    const res=ko16Results[m.num];
+    const resTxt=fmtKo16Res(res);
+    const card=document.createElement('div'); card.className='card';
+    let head='<div class="card-head"><div>'
+      +'<div class="mlabel">1/16 · M'+m.num+'</div>'
+      +'<div class="teams">'+m.t1+' – '+m.t2+'</div></div>'
+      +(resTxt?'<div class="result-pill">'+resTxt+'</div>':'<div class="result-pill empty">à jouer</div>')
+      +'</div>';
+    let grid='<div class="pgrid">';
+    DB.players.forEach(p=>{
+      const trio=(KO16.preds[p]||{})[m.num];
+      const pts=res?ko16Points(trio,res):0;
+      let cls='', extra='';
+      if(res){ if(pts){cls=(pts>=6?' exact':' good');extra='<span class="pts">+'+pts+'</span>';} else cls=' zero'; }
+      grid+='<div class="pcell'+cls+'"><div class="pname">'+p+'</div>'
+        +'<div class="psc" style="font-family:Inter;font-size:.66rem;font-weight:600;letter-spacing:0;line-height:1.25">'+fmtKo16(trio)+'</div>'+extra+'</div>';
+    });
+    grid+='</div>';
+    card.innerHTML=head+grid;
+    wrap.appendChild(card);
+  });
+}
 function renderDay(){
   const wrap=document.getElementById('daymatches');
+  if(selDay==='ko16'){ renderKo16Day(); return; }
   if(typeof selDay==='string'){ renderKoDate(selDay.slice(2)); return; }
   wrap.innerHTML='';
   DB.days[selDay].rows.forEach(row=>{
