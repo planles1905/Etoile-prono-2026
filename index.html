@@ -240,6 +240,21 @@ let groupsReal = {};   // {A:[t1,t2,t3,t4], ...}  keyed by group letter
 let koReal = {};       // {ko16:[...], ko8:[...], ko4:[...], ko2:[...], final:[w,l]}
 let podiumReal = null; // [1st, 2nd, 3rd]
 let koScores = {};     // {matchId:[s1,s2]} — KO fixtures are auto-generated; only scores are stored
+let ko16Results = {};  // {matchNum:{mode:'90'|'et'|'pen', sc:[a,b], pen:[x,y]|null}}
+
+// Points 1/16 : l'issue prévue doit correspondre à l'issue réelle, sinon 0
+function ko16Points(trio, res){
+  if(!res||!res.mode||!trio) return 0;
+  const pm = trio[2]?'pen':(trio[1]?'et':(trio[0]?'90':null));
+  if(pm!==res.mode) return 0;
+  const oc=(a,b)=>a>b?1:(a<b?-1:0);
+  if(res.mode==='90'){ const p=trio[0],r=res.sc||[]; if(p[0]===r[0]&&p[1]===r[1])return 6; if(oc(p[0],p[1])===oc(r[0],r[1]))return 2; return 0; }
+  if(res.mode==='et'){ const p=trio[1],r=res.sc||[]; if(p[0]===r[0]&&p[1]===r[1])return 8; if(oc(p[0],p[1])===oc(r[0],r[1]))return 3; return 0; }
+  const p=trio[2], rp=res.pen||[]; // tirs au but : score de la séance
+  if(p[0]===p[1]||rp[0]===rp[1]) return 0;
+  if((p[0]>p[1])!==(rp[0]>rp[1])) return 0; // mauvais vainqueur
+  return (p[0]===rp[0]&&p[1]===rp[1]) ? 10 : 5;
+}
 
 function recalculateBonus(){
   bonus = {};
@@ -275,6 +290,7 @@ async function init(){
       if(remote.ko) koReal = Object.assign({}, remote.ko);
       if(remote.pd) podiumReal = remote.pd;
       if(remote.ks) koScores = Object.assign({}, remote.ks);
+      if(remote.k16) ko16Results = Object.assign({}, remote.k16);
     }
   } catch(e){}
 
@@ -444,7 +460,7 @@ function effectivePodium(){
 }
 function totals(){
   const t = {};
-  DB.players.forEach(p=>{ t[p]={pts:0,exact:0,good:0,bonus:0}; });
+  DB.players.forEach(p=>{ t[p]={pts:0,exact:0,good:0,bonus:0,ko:0}; });
   for(const row in results){
     const res = results[row];
     if(!Array.isArray(res)) continue;
@@ -458,34 +474,13 @@ function totals(){
     const pts = QPTS[qrow]||0;
     (bonus[qrow]||[]).forEach(p=>{ if(t[p]){t[p].pts+=pts; t[p].bonus+=pts;} });
   }
-  // Group standings: 6 pts per correct position (manual or auto-calc)
-  GROUP_LETTERS.forEach(g=>{
-    const eff = effectiveGroupOrder(g);
-    if(!eff) return;
-    const actual = eff.teams;
+  // 1/16 de finale : pronos au score (issue 90'/prol./t.a.b.)
+  for(const num in ko16Results){
+    const res=ko16Results[num];
     DB.players.forEach(p=>{
-      const pred=(DB.groups[g]||{})[p]||[];
-      for(let i=0;i<4;i++){ if(pred[i]&&actual[i]&&pred[i]===actual[i]) t[p].pts+=6; }
-    });
-  });
-  // KO phases (ko16 can be auto-calculated)
-  const KO_PTS={ko16:5,ko8:9,ko4:15,ko2:22,final:33};
-  for(const phase in KO_PTS){
-    const eff=effectiveKo(phase);
-    if(!eff) continue;
-    const actualSet=new Set(eff.teams);
-    DB.players.forEach(p=>{
-      const pred=(DB.ko[phase]||{})[p]||[];
-      pred.forEach(team=>{ if(actualSet.has(team)) t[p].pts+=KO_PTS[phase]; });
-    });
-  }
-  // Podium: 69/29/19 pts per correct position (manual or derived from finals)
-  const effPod=effectivePodium();
-  if(effPod){
-    const PP=[69,29,19], pod=effPod.pod;
-    DB.players.forEach(p=>{
-      const pred=DB.podium_preds[p]||[];
-      for(let i=0;i<3;i++){ if(pred[i]&&pod[i]&&pred[i]===pod[i]) t[p].pts+=PP[i]; }
+      const trio=(KO16.preds[p]||{})[num];
+      const pts=ko16Points(trio,res);
+      if(pts){ t[p].pts+=pts; t[p].ko+=pts; }
     });
   }
   return t;
@@ -838,7 +833,7 @@ function renderLB(){
     const div=document.createElement('div');
     div.className='lbrow'+(rank===1&&r.pts>0?' lead':'');
     div.innerHTML='<div class="rank">'+rank+'</div>'
-      +'<div class="who">'+r.p+'<div class="detail">'+r.exact+'× exact · '+r.good+'× vainqueur</div></div>'
+      +'<div class="who">'+r.p+'<div class="detail">'+r.exact+'× exact · '+r.good+'× vainqueur'+(r.ko?' · +'+r.ko+' phase finale':'')+'</div></div>'
       +'<div class="tot">'+r.pts+'</div>';
     wrap.appendChild(div);
   });
@@ -861,21 +856,75 @@ function fmtKo16(t){
   if(t[0]) return sc(t[0]);
   return '—';
 }
+const KO16_MODES={'90':"90'",'et':'a.p.','pen':'t.a.b.'};
+function fmtKo16Res(res){
+  if(!res||!res.mode) return null;
+  const sc=x=>x?x[0]+'–'+x[1]:'?';
+  if(res.mode==='pen') return sc(res.sc)+' · t.a.b. '+sc(res.pen);
+  return sc(res.sc)+(res.mode==='et'?' a.p.':'');
+}
+function numInp(val,on){
+  const i=document.createElement('input');
+  i.type='number'; i.inputMode='numeric'; i.min=0; i.max=30;
+  i.style.cssText='width:42px;height:36px;text-align:center;font-family:Bebas Neue;font-size:1.15rem;background:var(--pitch);color:var(--chalk);border:1px solid var(--stroke);border-radius:8px';
+  i.value=(val==null?'':val); i.onchange=on; return i;
+}
+function ko16AdminBlock(num){
+  const res=ko16Results[num]||{};
+  const block=document.createElement('div'); block.className='admin-block';
+  block.innerHTML='<label>Résultat réel</label>';
+  // mode selector
+  const modeRow=document.createElement('div'); modeRow.style.cssText='display:flex;gap:6px;margin-bottom:8px';
+  ['90','et','pen'].forEach(mo=>{
+    const b=document.createElement('button'); b.className='btn ghost'; b.textContent=KO16_MODES[mo];
+    b.style.cssText='padding:6px 10px;margin:0;'+(res.mode===mo?'background:var(--gold);color:var(--gold-ink);border-color:var(--gold)':'');
+    b.onclick=()=>{ ko16Results[num]=Object.assign({},ko16Results[num],{mode:mo}); if(mo!=='pen') delete ko16Results[num].pen; renderPhases(); renderLB(); };
+    modeRow.appendChild(b);
+  });
+  block.appendChild(modeRow);
+  if(res.mode){
+    const lbl1=res.mode==='pen'?'Score fin prolongation (nul)':'Score';
+    const r1=document.createElement('div'); r1.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px';
+    r1.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">'+lbl1+'</span>';
+    const sc=(res.sc||[null,null]).slice();
+    const save1=(i)=>(e)=>{ const v=e.target.value; sc[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{sc:sc}); renderLB(); renderPhases(); };
+    r1.appendChild(numInp(sc[0],save1(0))); const d1=document.createElement('span');d1.className='dash';d1.textContent='–';r1.appendChild(d1); r1.appendChild(numInp(sc[1],save1(1)));
+    block.appendChild(r1);
+    if(res.mode==='pen'){
+      const r2=document.createElement('div'); r2.style.cssText='display:flex;gap:6px;align-items:center';
+      r2.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">Tirs au but</span>';
+      const pn=(res.pen||[null,null]).slice();
+      const save2=(i)=>(e)=>{ const v=e.target.value; pn[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{pen:pn}); renderLB(); renderPhases(); };
+      r2.appendChild(numInp(pn[0],save2(0))); const d2=document.createElement('span');d2.className='dash';d2.textContent='–';r2.appendChild(d2); r2.appendChild(numInp(pn[1],save2(1)));
+      block.appendChild(r2);
+    }
+    const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Effacer le résultat'; del.style.cssText='padding:6px 11px;margin-top:8px';
+    del.onclick=()=>{ delete ko16Results[num]; renderPhases(); renderLB(); };
+    block.appendChild(del);
+  }
+  return block;
+}
 function renderPhases(){
   const wrap=document.getElementById('ko16-list'); if(!wrap) return;
   wrap.innerHTML='';
   KO16.matches.forEach(m=>{
-    const card=document.createElement('div'); card.className='qcard';
+    const res=ko16Results[m.num];
+    const card=document.createElement('div'); card.className='qcard'+(res&&res.mode?' answered':'');
     const head=document.createElement('button'); head.className='q-head';
+    const resTxt=fmtKo16Res(res);
     head.innerHTML='<span class="qpts">M'+m.num+'</span>'
-      +'<span class="qtxt">'+m.t1+' – '+m.t2+'</span><span class="qok"></span>';
+      +'<span class="qtxt">'+m.t1+' – '+m.t2+'</span>'
+      +'<span class="qok">'+(resTxt?resTxt:'')+'</span>';
     head.onclick=()=>card.classList.toggle('open');
     const body=document.createElement('div'); body.className='q-body';
+    if(adminMode) body.appendChild(ko16AdminBlock(m.num));
     const grid=document.createElement('div'); grid.className='agrid'; grid.style.marginTop='2px';
     DB.players.forEach(p=>{
       const trio=(KO16.preds[p]||{})[m.num];
-      const cell=document.createElement('div'); cell.className='acell'; cell.style.cursor='default';
-      cell.innerHTML='<div class="pname">'+p+'</div><div class="aval">'+fmtKo16(trio)+'</div>';
+      const pts=res?ko16Points(trio,res):0;
+      const cell=document.createElement('div'); cell.className='acell'+(pts?' ok':'')+(res&&!pts?' miss':''); cell.style.cursor='default';
+      if(res&&!pts) cell.style.opacity='.45';
+      cell.innerHTML='<div class="pname">'+p+'</div><div class="aval">'+fmtKo16(trio)+(pts?' <b>+'+pts+'</b>':'')+'</div>';
       grid.appendChild(cell);
     });
     body.appendChild(grid);
@@ -1148,7 +1197,7 @@ document.getElementById('btn-publish').onclick=async()=>{
     for(const ph in koReal){ if(koReal[ph]&&koReal[ph].length>0) cleanKo[ph]=koReal[ph]; }
     const cleanKs={};
     for(const id in koScores){ if(Array.isArray(koScores[id])&&koScores[id].some(x=>x!=null)) cleanKs[id]=koScores[id]; }
-    const payload = JSON.stringify({r:clean,ca:correctAnswers,gs:cleanGs,ko:cleanKo,pd:podiumReal||null,ks:cleanKs}, null, 2);
+    const payload = JSON.stringify({r:clean,ca:correctAnswers,gs:cleanGs,ko:cleanKo,pd:podiumReal||null,ks:cleanKs,k16:ko16Results}, null, 2);
     const token = getGithubToken();
     if(token){
       const content = btoa(unescape(encodeURIComponent(payload)));
@@ -1239,7 +1288,7 @@ let _lastUpdateTime = null;
 function _formatTime(d){ const h=String(d.getHours()).padStart(2,'0'); const m=String(d.getMinutes()).padStart(2,'0'); const s=String(d.getSeconds()).padStart(2,'0'); return h+':'+m+':'+s; }
 function _updateLastUpdateUI(){ const el = document.getElementById('lastUpdate'); if(el) el.textContent = _lastUpdateTime ? 'Mise à jour : '+_formatTime(_lastUpdateTime) : '—'; }
 
-function _makeClean(obj){ const c={}; if(obj && obj.r) c.r = obj.r; else if(obj) c.r = obj; if(obj && obj.b) c.b = obj.b; else if(obj && obj.b===undefined) c.b = {}; if(obj){ c.ca=obj.ca||{}; c.gs=obj.gs||{}; c.ko=obj.ko||{}; c.pd=obj.pd||null; c.ks=obj.ks||{}; } return c; }
+function _makeClean(obj){ const c={}; if(obj && obj.r) c.r = obj.r; else if(obj) c.r = obj; if(obj && obj.b) c.b = obj.b; else if(obj && obj.b===undefined) c.b = {}; if(obj){ c.ca=obj.ca||{}; c.gs=obj.gs||{}; c.ko=obj.ko||{}; c.pd=obj.pd||null; c.ks=obj.ks||{}; c.k16=obj.k16||{}; } return c; }
 
 function _showRemoteBanner(remote){
   if(document.getElementById('remoteUpdate')) return;
@@ -1249,7 +1298,7 @@ function _showRemoteBanner(remote){
   div.innerHTML = 'Nouveaux résultats disponibles — <button id="btn-reload-remote" class="btn">Recharger</button> <button id="btn-apply-remote" class="btn ghost">Appliquer localement</button> <button id="btn-ignore-remote" class="btn ghost">Ignorer</button>';
   document.body.appendChild(div);
   document.getElementById('btn-reload-remote').onclick=()=>{ try{ localStorage.removeItem(SKEY); }catch(e){} location.reload(); };
-  document.getElementById('btn-apply-remote').onclick=()=>{ try{ results = Object.assign({}, remote.r); correctAnswers = Object.assign({}, remote.ca || {}); if(remote.gs) groupsReal=Object.assign({},remote.gs); if(remote.ko) koReal=Object.assign({},remote.ko); if(remote.pd) podiumReal=remote.pd; if(remote.ks) koScores=Object.assign({},remote.ks); recalculateBonus(); persist(); renderDay(); renderEntry(); renderBonus(); renderLB(); renderPhases(); toast('Résultats appliqués'); }catch(e){} document.getElementById('remoteUpdate')?.remove(); };
+  document.getElementById('btn-apply-remote').onclick=()=>{ try{ results = Object.assign({}, remote.r); correctAnswers = Object.assign({}, remote.ca || {}); if(remote.gs) groupsReal=Object.assign({},remote.gs); if(remote.ko) koReal=Object.assign({},remote.ko); if(remote.pd) podiumReal=remote.pd; if(remote.ks) koScores=Object.assign({},remote.ks); if(remote.k16) ko16Results=Object.assign({},remote.k16); recalculateBonus(); persist(); renderDay(); renderEntry(); renderBonus(); renderLB(); renderPhases(); toast('Résultats appliqués'); }catch(e){} document.getElementById('remoteUpdate')?.remove(); };
   document.getElementById('btn-ignore-remote').onclick=()=>{ document.getElementById('remoteUpdate')?.remove(); };
 }
 
