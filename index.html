@@ -203,12 +203,12 @@ nav button.sel{color:var(--gold)}
   <section id="view-lb" class="view">
     <div class="lb-meta" id="lbmeta"></div>
     <div id="lbrows"></div>
-    <div class="bareme">Poules : <b>4 pts</b> exact · <i>1 pt</i> vainqueur/nul<br>Phase finale (au score) : bon résultat <i>2/3/5</i> · exact <b>6/8/10</b> (90'/prol./t.a.b.)<br>Bonus : vainqueur <b>30</b> · 2 finalistes <b>20</b> · meilleur joueur/buteur/passeur <b>15</b></div>
+    <div class="bareme">Poules : <b>4 pts</b> exact · <i>1 pt</i> vainqueur/nul<br>Phase finale (au score) : bon résultat <i>2/3/5</i> · exact <b>8/11/15</b> (90'/prol./t.a.b.)<br>Bonus : vainqueur <b>30</b> · 2 finalistes <b>20</b> · meilleur joueur/buteur/passeur <b>15</b></div>
   </section>
 
   <section id="view-phases" class="view">
     <h2>1/16 de finale — pronostics</h2>
-    <p style="font-size:.72rem;color:var(--muted);margin:0 2px 12px;line-height:1.55">Chaque joueur pronostique le score. <b>a.p.</b> = après prolongation · <b>t.a.b.</b> = tirs au but.<br>Barème : bon résultat <b>2 / 3 / 5</b> · score exact <b>6 / 8 / 10</b> (90' / prolong. / t.a.b.).</p>
+    <p style="font-size:.72rem;color:var(--muted);margin:0 2px 12px;line-height:1.55">Chaque joueur pronostique le score. <b>a.p.</b> = après prolongation · <b>t.a.b.</b> = tirs au but.<br>Barème : bon résultat <b>2 / 3 / 5</b> · score exact <b>8 / 11 / 15</b> (90' / prolong. / t.a.b.).</p>
     <div id="ko16-list"></div>
   </section>
 
@@ -243,20 +243,20 @@ let koScores = {};     // {matchId:[s1,s2]} — KO fixtures are auto-generated; 
 let ko16Results = {};  // {matchNum:{mode:'90'|'et'|'pen', s90:[a,b], set:[a,b]|null, pen:[x,y]|null}}
 
 // Points 1/16 : addition des points gagnés à chaque stade réellement joué
-//  90' : exact 6 / bon résultat 2 ; prolongation : exact 8 / résultat 3 ; t.a.b. : exact 10 / bon vainqueur 5
+//  90' : exact 8 / bon résultat 2 ; prolongation : exact 11 / résultat 3 ; t.a.b. : exact 15 / bon vainqueur 5
 function ko16Points(trio, res){
   if(!res||!res.mode||!trio) return 0;
   const oc=(a,b)=>a>b?1:(a<b?-1:0);
   const ex=(p,r)=>p&&r&&p[0]!=null&&r[0]!=null&&p[0]===r[0]&&p[1]===r[1];
   let pts=0;
   // stade 90' (toujours joué)
-  if(trio[0]&&res.s90&&res.s90[0]!=null){ if(ex(trio[0],res.s90)) pts+=6; else if(oc(trio[0][0],trio[0][1])===oc(res.s90[0],res.s90[1])) pts+=2; }
+  if(trio[0]&&res.s90&&res.s90[0]!=null){ if(ex(trio[0],res.s90)) pts+=8; else if(oc(trio[0][0],trio[0][1])===oc(res.s90[0],res.s90[1])) pts+=2; }
   // stade prolongation (si le match est allé en prolongation ou t.a.b.)
-  if((res.mode==='et'||res.mode==='pen') && trio[1] && res.set && res.set[0]!=null){ if(ex(trio[1],res.set)) pts+=8; else if(oc(trio[1][0],trio[1][1])===oc(res.set[0],res.set[1])) pts+=3; }
+  if((res.mode==='et'||res.mode==='pen') && trio[1] && res.set && res.set[0]!=null){ if(ex(trio[1],res.set)) pts+=11; else if(oc(trio[1][0],trio[1][1])===oc(res.set[0],res.set[1])) pts+=3; }
   // stade tirs au but (si le match est allé aux t.a.b.)
   if(res.mode==='pen' && trio[2] && res.pen && res.pen[0]!=null){
     const p=trio[2],r=res.pen;
-    if(p[0]!==p[1] && r[0]!==r[1] && (p[0]>p[1])===(r[0]>r[1])) pts+=(ex(p,r)?10:5);
+    if(p[0]!==p[1] && r[0]!==r[1] && (p[0]>p[1])===(r[0]>r[1])) pts+=(ex(p,r)?15:5);
   }
   return pts;
 }
