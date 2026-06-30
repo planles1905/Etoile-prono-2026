@@ -240,20 +240,25 @@ let groupsReal = {};   // {A:[t1,t2,t3,t4], ...}  keyed by group letter
 let koReal = {};       // {ko16:[...], ko8:[...], ko4:[...], ko2:[...], final:[w,l]}
 let podiumReal = null; // [1st, 2nd, 3rd]
 let koScores = {};     // {matchId:[s1,s2]} — KO fixtures are auto-generated; only scores are stored
-let ko16Results = {};  // {matchNum:{mode:'90'|'et'|'pen', sc:[a,b], pen:[x,y]|null}}
+let ko16Results = {};  // {matchNum:{mode:'90'|'et'|'pen', s90:[a,b], set:[a,b]|null, pen:[x,y]|null}}
 
-// Points 1/16 : l'issue prévue doit correspondre à l'issue réelle, sinon 0
+// Points 1/16 : addition des points gagnés à chaque stade réellement joué
+//  90' : exact 6 / bon résultat 2 ; prolongation : exact 8 / résultat 3 ; t.a.b. : exact 10 / bon vainqueur 5
 function ko16Points(trio, res){
   if(!res||!res.mode||!trio) return 0;
-  const pm = trio[2]?'pen':(trio[1]?'et':(trio[0]?'90':null));
-  if(pm!==res.mode) return 0;
   const oc=(a,b)=>a>b?1:(a<b?-1:0);
-  if(res.mode==='90'){ const p=trio[0],r=res.sc||[]; if(p[0]===r[0]&&p[1]===r[1])return 6; if(oc(p[0],p[1])===oc(r[0],r[1]))return 2; return 0; }
-  if(res.mode==='et'){ const p=trio[1],r=res.sc||[]; if(p[0]===r[0]&&p[1]===r[1])return 8; if(oc(p[0],p[1])===oc(r[0],r[1]))return 3; return 0; }
-  const p=trio[2], rp=res.pen||[]; // tirs au but : score de la séance
-  if(p[0]===p[1]||rp[0]===rp[1]) return 0;
-  if((p[0]>p[1])!==(rp[0]>rp[1])) return 0; // mauvais vainqueur
-  return (p[0]===rp[0]&&p[1]===rp[1]) ? 10 : 5;
+  const ex=(p,r)=>p&&r&&p[0]!=null&&r[0]!=null&&p[0]===r[0]&&p[1]===r[1];
+  let pts=0;
+  // stade 90' (toujours joué)
+  if(trio[0]&&res.s90&&res.s90[0]!=null){ if(ex(trio[0],res.s90)) pts+=6; else if(oc(trio[0][0],trio[0][1])===oc(res.s90[0],res.s90[1])) pts+=2; }
+  // stade prolongation (si le match est allé en prolongation ou t.a.b.)
+  if((res.mode==='et'||res.mode==='pen') && trio[1] && res.set && res.set[0]!=null){ if(ex(trio[1],res.set)) pts+=8; else if(oc(trio[1][0],trio[1][1])===oc(res.set[0],res.set[1])) pts+=3; }
+  // stade tirs au but (si le match est allé aux t.a.b.)
+  if(res.mode==='pen' && trio[2] && res.pen && res.pen[0]!=null){
+    const p=trio[2],r=res.pen;
+    if(p[0]!==p[1] && r[0]!==r[1] && (p[0]>p[1])===(r[0]>r[1])) pts+=(ex(p,r)?10:5);
+  }
+  return pts;
 }
 
 function recalculateBonus(){
@@ -899,9 +904,10 @@ function fmtKo16(t){
 const KO16_MODES={'90':"90'",'et':'a.p.','pen':'t.a.b.'};
 function fmtKo16Res(res){
   if(!res||!res.mode) return null;
-  const sc=x=>x?x[0]+'–'+x[1]:'?';
-  if(res.mode==='pen') return sc(res.sc)+' · t.a.b. '+sc(res.pen);
-  return sc(res.sc)+(res.mode==='et'?' a.p.':'');
+  const sc=x=>(x&&x[0]!=null)?x[0]+'–'+x[1]:'?';
+  if(res.mode==='90') return sc(res.s90);
+  if(res.mode==='et') return sc(res.s90)+' → '+sc(res.set)+' a.p.';
+  return sc(res.s90)+' → '+sc(res.set)+' a.p. · t.a.b. '+sc(res.pen);
 }
 function numInp(val,on){
   const i=document.createElement('input');
@@ -909,35 +915,32 @@ function numInp(val,on){
   i.style.cssText='width:42px;height:36px;text-align:center;font-family:Bebas Neue;font-size:1.15rem;background:var(--pitch);color:var(--chalk);border:1px solid var(--stroke);border-radius:8px';
   i.value=(val==null?'':val); i.onchange=on; return i;
 }
+function ko16ScoreRow(num, field, label){
+  const row=document.createElement('div'); row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px';
+  row.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">'+label+'</span>';
+  const cur=((ko16Results[num]||{})[field]||[null,null]).slice();
+  const save=(i)=>(e)=>{ const v=e.target.value; cur[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{[field]:cur}); renderLB(); renderPhases(); };
+  row.appendChild(numInp(cur[0],save(0)));
+  const d=document.createElement('span'); d.className='dash'; d.textContent='–'; row.appendChild(d);
+  row.appendChild(numInp(cur[1],save(1)));
+  return row;
+}
 function ko16AdminBlock(num){
   const res=ko16Results[num]||{};
   const block=document.createElement('div'); block.className='admin-block';
-  block.innerHTML='<label>Résultat réel</label>';
-  // mode selector
+  block.innerHTML='<label>Résultat réel — jusqu\'où le match est allé</label>';
   const modeRow=document.createElement('div'); modeRow.style.cssText='display:flex;gap:6px;margin-bottom:8px';
   ['90','et','pen'].forEach(mo=>{
     const b=document.createElement('button'); b.className='btn ghost'; b.textContent=KO16_MODES[mo];
     b.style.cssText='padding:6px 10px;margin:0;'+(res.mode===mo?'background:var(--gold);color:var(--gold-ink);border-color:var(--gold)':'');
-    b.onclick=()=>{ ko16Results[num]=Object.assign({},ko16Results[num],{mode:mo}); if(mo!=='pen') delete ko16Results[num].pen; renderPhases(); renderLB(); };
+    b.onclick=()=>{ ko16Results[num]=Object.assign({},ko16Results[num],{mode:mo}); renderPhases(); renderLB(); };
     modeRow.appendChild(b);
   });
   block.appendChild(modeRow);
   if(res.mode){
-    const lbl1=res.mode==='pen'?'Score fin prolongation (nul)':'Score';
-    const r1=document.createElement('div'); r1.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px';
-    r1.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">'+lbl1+'</span>';
-    const sc=(res.sc||[null,null]).slice();
-    const save1=(i)=>(e)=>{ const v=e.target.value; sc[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{sc:sc}); renderLB(); renderPhases(); };
-    r1.appendChild(numInp(sc[0],save1(0))); const d1=document.createElement('span');d1.className='dash';d1.textContent='–';r1.appendChild(d1); r1.appendChild(numInp(sc[1],save1(1)));
-    block.appendChild(r1);
-    if(res.mode==='pen'){
-      const r2=document.createElement('div'); r2.style.cssText='display:flex;gap:6px;align-items:center';
-      r2.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">Tirs au but</span>';
-      const pn=(res.pen||[null,null]).slice();
-      const save2=(i)=>(e)=>{ const v=e.target.value; pn[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{pen:pn}); renderLB(); renderPhases(); };
-      r2.appendChild(numInp(pn[0],save2(0))); const d2=document.createElement('span');d2.className='dash';d2.textContent='–';r2.appendChild(d2); r2.appendChild(numInp(pn[1],save2(1)));
-      block.appendChild(r2);
-    }
+    block.appendChild(ko16ScoreRow(num,'s90', res.mode==='90'?'Score (90 min)':"Score à 90' (nul)"));
+    if(res.mode==='et'||res.mode==='pen') block.appendChild(ko16ScoreRow(num,'set', res.mode==='et'?'Score fin prolongation':'Score fin prolongation (nul)'));
+    if(res.mode==='pen') block.appendChild(ko16ScoreRow(num,'pen','Tirs au but'));
     const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Effacer le résultat'; del.style.cssText='padding:6px 11px;margin-top:8px';
     del.onclick=()=>{ delete ko16Results[num]; renderPhases(); renderLB(); };
     block.appendChild(del);
