@@ -207,9 +207,9 @@ nav button.sel{color:var(--gold)}
   </section>
 
   <section id="view-phases" class="view">
-    <h2>1/16 de finale — pronostics</h2>
+    <h2>Phase finale — pronostics</h2>
     <p style="font-size:.72rem;color:var(--muted);margin:0 2px 12px;line-height:1.55">Chaque joueur pronostique le score. <b>a.p.</b> = après prolongation · <b>t.a.b.</b> = tirs au but.<br>Barème : bon résultat <b>2 / 3 / 5</b> · score exact <b>8 / 11 / 15</b> (90' / prolong. / t.a.b.).</p>
-    <div id="ko16-list"></div>
+    <div id="ko-list"></div>
   </section>
 
 </main>
@@ -218,7 +218,7 @@ nav button.sel{color:var(--gold)}
   <button data-v="day" class="sel"><span class="ic">⚽</span>Matchs</button>
   <button data-v="entry"><span class="ic">0–0</span>Correction</button>
   <button data-v="lb"><span class="ic">№1</span>Classement</button>
-  <button data-v="phases"><span class="ic">★</span>1/16</button>
+  <button data-v="phases"><span class="ic">★</span>Finale</button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -227,6 +227,7 @@ const DB = {"matches": {"6": {"label": "Matchs A 1", "t1": "Mexique", "t2": "Afr
 const SKEY = 'etoile2026_v2';
 /* ---------- 1/16 de finale (pronos au score) ---------- */
 const KO16 = {"matches":[{"num":1,"t1":"Afrique du Sud","t2":"Canada"},{"num":2,"t1":"Brésil","t2":"Japon"},{"num":3,"t1":"Allemagne","t2":"Paraguay"},{"num":4,"t1":"Pays-Bas","t2":"Maroc"},{"num":5,"t1":"Cote d'ivoire","t2":"Norvège"},{"num":6,"t1":"France","t2":"Suède"},{"num":7,"t1":"Mexique","t2":"Equateur"},{"num":8,"t1":"Angleterre","t2":"RD Congo"},{"num":9,"t1":"Belgique","t2":"Sénégal"},{"num":10,"t1":"USA","t2":"Bosnie"},{"num":11,"t1":"Espagne","t2":"Autriche"},{"num":12,"t1":"Portugal","t2":"Croatie"},{"num":13,"t1":"Suisse","t2":"Algérie"},{"num":14,"t1":"Australie","t2":"Egypte"},{"num":15,"t1":"Argentine","t2":"Cap-Vert"},{"num":16,"t1":"Colombie","t2":"Ghana"}],"preds":{"Hubert":{"1":[[1,1],[1,2],null],"2":[[2,2],[2,3],null],"3":[[2,1],null,null],"4":[[1,2],null,null],"5":[[1,1],[2,1],null],"6":[[2,0],null,null],"7":[[1,1],[2,1],null],"8":[[0,0],[1,0],null],"9":[[0,0],[0,0],[5,3]],"10":[[2,1],null,null],"11":[[1,1],[2,1],null],"12":[[0,0],[1,0],null],"13":[[1,1],[2,1],null],"14":[[0,0],[0,1],null],"15":[[1,1],[2,1],null],"16":[[2,1],null,null]},"Christophe":{"1":[[1,2],null,null],"2":[[2,2],[3,2],null],"3":[[2,0],null,null],"4":[[2,2],[2,2],[4,3]],"5":[[3,2],null,null],"6":[[3,0],null,null],"7":[[2,1],null,null],"8":[[4,1],null,null],"9":[[1,2],null,null],"10":[[3,1],null,null],"11":[[3,0],null,null],"12":[[2,2],[2,2],[5,4]],"13":[[3,1],null,null],"14":[[1,2],null,null],"15":[[3,1],null,null],"16":[[1,1],[1,2],null]},"Alfred":{"1":[[2,0],null,null],"2":[[2,2],[2,2],[3,2]],"3":[[2,1],null,null],"4":[[2,2],[2,2],[2,3]],"5":[[2,1],null,null],"6":[[3,1],null,null],"7":[[1,1],[2,1],null],"8":[[2,0],null,null],"9":[[1,2],null,null],"10":[[3,1],null,null],"11":[[2,0],null,null],"12":[[2,2],[2,2],[3,2]],"13":[[2,1],null,null],"14":[[1,1],[1,1],[1,2]],"15":[[1,0],null,null],"16":[[1,0],null,null]},"Tobias":{"1":[[1,1],[1,2],null],"2":[[1,2],null,null],"3":[[3,0],null,null],"4":[[2,2],[2,2],[2,4]],"5":[[0,2],null,null],"6":[[3,1],null,null],"7":[[2,0],null,null],"8":[[1,0],null,null],"9":[[1,2],null,null],"10":[[4,1],null,null],"11":[[3,0],null,null],"12":[[1,1],[1,2],null],"13":[[0,0],[1,0],null],"14":[[0,2],null,null],"15":[[4,1],null,null],"16":[[2,1],null,null]},"Seb":{"1":[[0,2],null,null],"2":[[3,0],null,null],"3":[[3,1],null,null],"4":[[3,0],null,null],"5":[[1,1],[1,2],null],"6":[[2,0],null,null],"7":[[2,1],null,null],"8":[[2,0],null,null],"9":[[1,1],[2,1],null],"10":[[1,1],[1,2],null],"11":[[3,0],null,null],"12":[[0,0],[0,1],null],"13":[[2,0],null,null],"14":[[0,0],[0,1],null],"15":[[3,0],null,null],"16":[[0,0],[0,1],null]},"Laurent":{"1":[[1,3],null,null],"2":[[3,0],null,null],"3":[[3,1],null,null],"4":[[3,0],null,null],"5":[[1,2],null,null],"6":[[2,0],null,null],"7":[[2,1],null,null],"8":[[2,0],null,null],"9":[[2,1],null,null],"10":[[2,0],null,null],"11":[[3,1],null,null],"12":[[1,1],[1,2],null],"13":[[3,1],null,null],"14":[[1,1],[2,1],null],"15":[[4,0],null,null],"16":[[1,0],null,null]},"Eric":{"1":[[1,3],null,null],"2":[[2,2],[2,3],null],"3":[[3,1],null,null],"4":[[3,2],null,null],"5":[[2,2],[2,3],null],"6":[[4,0],null,null],"7":[[1,2],null,null],"8":[[3,1],null,null],"9":[[2,3],null,null],"10":[[3,1],null,null],"11":[[3,0],null,null],"12":[[2,1],null,null],"13":[[1,1],[2,1],null],"14":[[1,1],[2,2],[3,5]],"15":[[2,0],null,null],"16":[[3,1],null,null]},"Carole":{"1":[[1,2],null,null],"2":[[2,0],null,null],"3":[[2,0],null,null],"4":[[2,2],[3,2],null],"5":[[1,2],null,null],"6":[[3,1],null,null],"7":[[1,1],[2,1],null],"8":[[2,1],null,null],"9":[[1,1],[2,1],null],"10":[[1,0],null,null],"11":[[2,0],null,null],"12":[[2,1],null,null],"13":[[3,1],null,null],"14":[[0,2],null,null],"15":[[3,1],null,null],"16":[[1,1],[3,1],null]},"Brian":{"1":[[1,4],null,null],"2":[[2,2],[2,2],[3,4]],"3":[[2,1],null,null],"4":[[1,1],[2,1],null],"5":[[1,2],null,null],"6":[[2,0],null,null],"7":[[2,1],null,null],"8":[[3,1],null,null],"9":[[1,1],[1,1],[5,4]],"10":[[2,0],null,null],"11":[[2,1],null,null],"12":[[1,1],[1,1],[4,3]],"13":[[1,1],[2,1],null],"14":[[1,2],null,null],"15":[[3,0],null,null],"16":[[2,1],null,null]},"Damien":{"1":[[1,2],null,null],"2":[[3,1],null,null],"3":[[2,0],null,null],"4":[[1,1],[2,1],null],"5":[[1,2],null,null],"6":[[3,1],null,null],"7":[[1,1],[2,1],null],"8":[[3,0],null,null],"9":[[1,1],[1,1],[5,4]],"10":[[1,1],[1,1],[4,5]],"11":[[2,0],null,null],"12":[[1,1],[2,1],null],"13":[[2,0],null,null],"14":[[1,1],[1,2],null],"15":[[4,0],null,null],"16":[[2,1],null,null]},"Yann":{"1":[[1,1],[1,2],null],"2":[[3,1],null,null],"3":[[2,0],null,null],"4":[[1,1],[1,1],[5,4]],"5":[[1,2],null,null],"6":[[2,1],null,null],"7":[[2,1],null,null],"8":[[3,0],null,null],"9":[[2,1],null,null],"10":[[2,0],null,null],"11":[[2,0],null,null],"12":[[1,1],[1,1],[4,3]],"13":[[2,1],null,null],"14":[[1,1],[1,2],null],"15":[[3,0],null,null],"16":[[2,1],null,null]},"Julien":{"1":[[1,3],null,null],"2":[[2,2],[2,2],[4,3]],"3":[[3,1],null,null],"4":[[2,2],[3,2],null],"5":[[2,2],[2,3],null],"6":[[4,1],null,null],"7":[[2,1],null,null],"8":[[3,1],null,null],"9":[[2,2],[2,3],null],"10":[[3,1],null,null],"11":[[2,2],[3,3],[4,2]],"12":[[2,2],[2,2],[3,4]],"13":[[3,2],null,null],"14":[[1,2],null,null],"15":[[4,1],null,null],"16":[[1,1],[2,2],[2,4]]},"Bastien":{"1":[[1,2],null,null],"2":[[2,1],null,null],"3":[[3,0],null,null],"4":[[1,1],[1,1],[5,4]],"5":[[3,0],null,null],"6":[[3,1],null,null],"7":[[2,0],null,null],"8":[[1,1],[2,1],null],"9":[[3,0],null,null],"10":[[2,1],null,null],"11":[[2,0],null,null],"12":[[2,0],null,null],"13":[[4,0],null,null],"14":[[1,2],null,null],"15":[[4,0],null,null],"16":[[2,1],null,null]}}};
+const KO8 = {"matches":[{"num":1,"t1":"Canada","t2":"Maroc"},{"num":2,"t1":"Paraguay","t2":"France"},{"num":3,"t1":"Brésil","t2":"Norvège"},{"num":4,"t1":"Mexique","t2":"Angleterre"},{"num":5,"t1":"Portugal","t2":"Espagne"},{"num":6,"t1":"USA","t2":"Belgique"}],"preds":{"Hubert":{"1":[[0,2],null,null],"2":[[0,1],null,null],"3":[[0,0],[1,0],null],"4":[[1,1],[1,2],null],"5":[[1,1],[2,2],[5,3]],"6":[[1,1],[1,2],null]},"Christophe":{"1":[[1,2],null,null],"2":[[0,3],null,null],"3":[[1,1],[1,1],[3,4]],"4":[[1,1],[1,2],null],"5":[[2,2],[2,2],[2,3]],"6":[[3,2],null,null]},"Alfred":{"1":[[0,2],null,null],"2":[[0,2],null,null],"3":[[1,1],[1,1],[4,3]],"4":[[1,2],null,null],"5":[[1,3],null,null],"6":[[2,0],null,null]},"Tobias":{"1":[[1,2],null,null],"2":[[0,2],null,null],"3":[[0,1],null,null],"4":[[1,1],[2,1],null],"5":[[1,3],null,null],"6":[[2,1],null,null]},"Seb":{"1":[[1,1],[2,1],null],"2":[[0,3],null,null],"3":[[2,2],[2,3],null],"4":[[0,0],[0,1],null],"5":[[0,2],null,null],"6":[[1,1],[1,2],null]},"Laurent":{"1":[[2,1],null,null],"2":[[2,1],null,null],"3":[[1,2],null,null],"4":[[2,1],null,null],"5":[[0,2],null,null],"6":[[2,0],null,null]},"Eric":{"1":[[1,1],[1,2],null],"2":[[0,4],null,null],"3":[[3,2],null,null],"4":[[2,1],null,null],"5":[[1,1],[2,2],[4,3]],"6":[[1,1],[2,1],null]},"Carole":{"1":[[1,2],null,null],"2":[[0,2],null,null],"3":[[1,1],[2,1],null],"4":[[0,2],null,null],"5":[[1,2],null,null],"6":[[0,1],null,null]},"Brian":{"1":[[1,2],null,null],"2":[[0,3],null,null],"3":[[2,1],null,null],"4":[[1,2],null,null],"5":[[1,1],[1,2],null],"6":[[1,1],[1,1],[3,5]]},"Damien":{"1":[[1,1],[1,2],null],"2":[[1,3],null,null],"3":[[2,1],null,null],"4":[[1,1],[1,2],null],"5":[[1,1],[2,2],[4,5]],"6":[[0,0],[1,1],[3,4]]},"Yann":{"1":[[1,1],[1,2],null],"2":[[0,2],null,null],"3":[[2,1],null,null],"4":[[1,1],[1,1],[4,5]],"5":[[1,1],[1,2],null],"6":[[1,2],null,null]},"Julien":{"1":[[1,2],null,null],"2":[[1,1],[1,1],[4,3]],"3":[[1,1],[2,2],[3,4]],"4":[[1,2],null,null],"5":[[2,2],[2,4],null],"6":[[2,2],[2,2],[3,4]]},"Bastien":{"1":[[1,3],null,null],"2":[[0,3],null,null],"3":[[1,1],[1,1],[3,4]],"4":[[2,2],[2,3],null],"5":[[0,0],[1,1],[5,4]],"6":[[1,3],null,null]}}};
 
 /* ---------- phases predictions data (à venir) ---------- */
 DB.groups={};DB.ko={};DB.podium_preds={};
@@ -240,7 +241,7 @@ let groupsReal = {};   // {A:[t1,t2,t3,t4], ...}  keyed by group letter
 let koReal = {};       // {ko16:[...], ko8:[...], ko4:[...], ko2:[...], final:[w,l]}
 let podiumReal = null; // [1st, 2nd, 3rd]
 let koScores = {};     // {matchId:[s1,s2]} — KO fixtures are auto-generated; only scores are stored
-let ko16Results = {};  // {matchNum:{mode:'90'|'et'|'pen', s90:[a,b], set:[a,b]|null, pen:[x,y]|null}}
+const KORES = { ko16:{}, ko8:{} };  // résultats réels de phase finale, par tour
 
 // Points 1/16 : addition des points gagnés à chaque stade réellement joué
 //  90' : exact 8 / bon résultat 2 ; prolongation : exact 11 / résultat 3 ; t.a.b. : exact 15 / bon vainqueur 5
@@ -295,7 +296,8 @@ async function init(){
       if(remote.ko) koReal = Object.assign({}, remote.ko);
       if(remote.pd) podiumReal = remote.pd;
       if(remote.ks) koScores = Object.assign({}, remote.ks);
-      if(remote.k16) ko16Results = Object.assign({}, remote.k16);
+      if(remote.k16) KORES.ko16 = Object.assign({}, remote.k16);
+      if(remote.k8) KORES.ko8 = Object.assign({}, remote.k8);
     }
   } catch(e){}
 
@@ -479,15 +481,17 @@ function totals(){
     const pts = QPTS[qrow]||0;
     (bonus[qrow]||[]).forEach(p=>{ if(t[p]){t[p].pts+=pts; t[p].bonus+=pts;} });
   }
-  // 1/16 de finale : pronos au score (issue 90'/prol./t.a.b.)
-  for(const num in ko16Results){
-    const res=ko16Results[num];
-    DB.players.forEach(p=>{
-      const trio=(KO16.preds[p]||{})[num];
-      const pts=ko16Points(trio,res);
-      if(pts){ t[p].pts+=pts; t[p].ko+=pts; }
-    });
-  }
+  // Phase finale : pronos au score (tous tours)
+  KO_ROUNDS.forEach(r=>{
+    for(const num in KORES[r.key]){
+      const res=KORES[r.key][num];
+      DB.players.forEach(p=>{
+        const trio=(r.data.preds[p]||{})[num];
+        const pts=ko16Points(trio,res);
+        if(pts){ t[p].pts+=pts; t[p].ko+=pts; }
+      });
+    }
+  });
   return t;
 }
 
@@ -522,17 +526,18 @@ const KO_DAYS=(()=>{
   for(const id in KO_DT){ const day=footballDay(KO_DT[id]); (by[day]=by[day]||[]).push(+id); }
   return Object.keys(by).sort().map(day=>({date:day, ids:by[day].sort((a,b)=>KO_DT[a].localeCompare(KO_DT[b])||a-b)}));
 })();
-// Affiches 1/16 d'Étoile (sans dates) mappées sur le vrai calendrier des 16es (matchs 73-88), dans l'ordre
-const KO16_DT=(()=>{
-  const r32=Object.keys(KO_DT).filter(n=>+n>=73&&+n<=88).sort((a,b)=>KO_DT[a].localeCompare(KO_DT[b]));
-  const dt={}; (KO16.matches||[]).forEach((m,i)=>{ if(r32[i]) dt[m.num]=KO_DT[r32[i]]; });
-  return dt;
-})();
-const KO16_DAYS=(()=>{
-  const by={};
-  for(const num in KO16_DT){ const day=footballDay(KO16_DT[num]); (by[day]=by[day]||[]).push(+num); }
-  return Object.keys(by).sort().map(day=>({date:day, nums:by[day].sort((a,b)=>KO16_DT[a].localeCompare(KO16_DT[b])||a-b)}));
-})();
+// Tours de phase finale (Étoile) — affiches mappées sur le vrai calendrier KO, par tour
+const KO_ROUNDS = [
+  {key:'ko16', label:'1/16', data:KO16, lo:73, hi:88},
+  {key:'ko8',  label:'1/8',  data:KO8,  lo:89, hi:96}
+];
+KO_ROUNDS.forEach(r=>{
+  const slots=Object.keys(KO_DT).filter(n=>+n>=r.lo&&+n<=r.hi).sort((a,b)=>KO_DT[a].localeCompare(KO_DT[b]));
+  r.dt={}; (r.data.matches||[]).forEach((m,i)=>{ if(slots[i]) r.dt[m.num]=KO_DT[slots[i]]; });
+  const by={}; for(const num in r.dt){ const d=footballDay(r.dt[num]); (by[d]=by[d]||[]).push(+num); }
+  r.days=Object.keys(by).sort().map(d=>({date:d, nums:by[d].sort((a,b)=>r.dt[a].localeCompare(r.dt[b])||a-b)}));
+});
+function koRound(key){ return KO_ROUNDS.find(r=>r.key===key); }
 function roundOfMatch(id){ id=+id; return id<=88?'ko16':id<=96?'ko8':id<=100?'ko4':id<=102?'ko2':id===103?'third':'finalm'; }
 function roundLabel(mkey){ return mkey==='finalm'?'Finale':mkey==='third'?'Match 3e place':((KO_CAL.find(x=>x.key===mkey)||{}).label+' de finale'); }
 function slotLabel(id){
@@ -547,8 +552,9 @@ let selDay = (()=>{
   const i = DB.days.findIndex(d=>d.date===today);
   if(i>=0) return i;
   if(today > DB.days[DB.days.length-1].date){
-    const k = KO16_DAYS.find(d=>d.date>=today) || KO16_DAYS[KO16_DAYS.length-1];
-    return k ? 'ko16:'+k.date : 0;
+    for(const r of KO_ROUNDS){ const d=r.days.find(x=>x.date>=today); if(d) return r.key+':'+d.date; }
+    const lr=KO_ROUNDS[KO_ROUNDS.length-1], ld=lr.days[lr.days.length-1];
+    return ld ? lr.key+':'+ld.date : 0;
   }
   return 0;
 })();
@@ -563,13 +569,15 @@ function renderDaybar(){
     c.onclick=()=>{selDay=i;renderDaybar();renderDay();};
     bar.appendChild(c);
   });
-  KO16_DAYS.forEach(d=>{
-    const key='ko16:'+d.date;
-    const c=document.createElement('button');
-    c.className='chip'+(key===selDay?' sel':'');
-    c.innerHTML='<span class="n">'+fmtDayChip(d.date)+'</span>';
-    c.onclick=()=>{selDay=key;renderDaybar();renderDay();};
-    bar.appendChild(c);
+  KO_ROUNDS.forEach(r=>{
+    r.days.forEach(d=>{
+      const key=r.key+':'+d.date;
+      const c=document.createElement('button');
+      c.className='chip'+(key===selDay?' sel':'');
+      c.innerHTML='<span class="n">'+fmtDayChip(d.date)+'</span>';
+      c.onclick=()=>{selDay=key;renderDaybar();renderDay();};
+      bar.appendChild(c);
+    });
   });
   const sel = bar.querySelector('.sel');
   if(sel) sel.scrollIntoView({inline:'center',block:'nearest'});
@@ -673,19 +681,19 @@ function renderKoDate(date){
   day.ids.forEach(id=>{ wrap.appendChild(koMatchCard(roundOfMatch(id), id, B)); });
 }
 
-function ko16Card(m){
-  const res=ko16Results[m.num];
+function koRoundCard(r, m){
+  const res=KORES[r.key][m.num];
   const resTxt=fmtKo16Res(res);
   const card=document.createElement('div'); card.className='card';
-  const kick=fmtKick(KO16_DT[m.num]);
+  const kick=fmtKick(r.dt[m.num]);
   let head='<div class="card-head"><div>'
-    +'<div class="mlabel">1/16 · M'+m.num+(kick?' · '+kick:'')+'</div>'
+    +'<div class="mlabel">'+r.label+' · M'+m.num+(kick?' · '+kick:'')+'</div>'
     +'<div class="teams">'+m.t1+' – '+m.t2+'</div></div>'
     +(resTxt?'<div class="result-pill">'+resTxt+'</div>':'<div class="result-pill empty">à jouer</div>')
     +'</div>';
   let grid='<div class="pgrid">';
   DB.players.forEach(p=>{
-    const trio=(KO16.preds[p]||{})[m.num];
+    const trio=(r.data.preds[p]||{})[m.num];
     const pts=res?ko16Points(trio,res):0;
     let cls='', extra='';
     if(res){ if(pts){cls=(pts>=6?' exact':' good');extra='<span class="pts">+'+pts+'</span>';} else cls=' zero'; }
@@ -696,15 +704,15 @@ function ko16Card(m){
   card.innerHTML=head+grid;
   return card;
 }
-function renderKo16Date(date){
+function renderKoRoundDate(rkey, date){
   const wrap=document.getElementById('daymatches'); wrap.innerHTML='';
-  const day=KO16_DAYS.find(d=>d.date===date); if(!day) return;
-  day.nums.forEach(num=>{ const m=KO16.matches.find(x=>x.num===num); if(m) wrap.appendChild(ko16Card(m)); });
+  const r=koRound(rkey); if(!r) return;
+  const day=r.days.find(d=>d.date===date); if(!day) return;
+  day.nums.forEach(num=>{ const m=r.data.matches.find(x=>x.num===num); if(m) wrap.appendChild(koRoundCard(r,m)); });
 }
 function renderDay(){
   const wrap=document.getElementById('daymatches');
-  if(typeof selDay==='string' && selDay.startsWith('ko16:')){ renderKo16Date(selDay.slice(5)); return; }
-  if(typeof selDay==='string'){ renderKoDate(selDay.slice(2)); return; }
+  if(typeof selDay==='string'){ const i=selDay.indexOf(':'); const rk=selDay.slice(0,i); if(koRound(rk)){ renderKoRoundDate(rk, selDay.slice(i+1)); return; } renderKoDate(selDay.slice(2)); return; }
   wrap.innerHTML='';
   DB.days[selDay].rows.forEach(row=>{
     const m=DB.matches[row], res=results[row];
@@ -915,63 +923,71 @@ function numInp(val,on){
   i.style.cssText='width:42px;height:36px;text-align:center;font-family:Bebas Neue;font-size:1.15rem;background:var(--pitch);color:var(--chalk);border:1px solid var(--stroke);border-radius:8px';
   i.value=(val==null?'':val); i.onchange=on; return i;
 }
-function ko16ScoreRow(num, field, label){
+function koScoreRow(rkey, num, field, label){
+  const RES=KORES[rkey];
   const row=document.createElement('div'); row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:6px';
   row.innerHTML='<span style="font-size:.66rem;color:var(--muted);flex:1">'+label+'</span>';
-  const cur=((ko16Results[num]||{})[field]||[null,null]).slice();
-  const save=(i)=>(e)=>{ const v=e.target.value; cur[i]=v===''?null:Math.max(0,parseInt(v,10)||0); ko16Results[num]=Object.assign({},ko16Results[num],{[field]:cur}); renderLB(); renderPhases(); };
+  const cur=((RES[num]||{})[field]||[null,null]).slice();
+  const save=(i)=>(e)=>{ const v=e.target.value; cur[i]=v===''?null:Math.max(0,parseInt(v,10)||0); RES[num]=Object.assign({},RES[num],{[field]:cur}); renderLB(); renderPhases(); renderDay(); };
   row.appendChild(numInp(cur[0],save(0)));
   const d=document.createElement('span'); d.className='dash'; d.textContent='–'; row.appendChild(d);
   row.appendChild(numInp(cur[1],save(1)));
   return row;
 }
-function ko16AdminBlock(num){
-  const res=ko16Results[num]||{};
+function koAdminBlock(rkey, num){
+  const RES=KORES[rkey]; const res=RES[num]||{};
   const block=document.createElement('div'); block.className='admin-block';
   block.innerHTML='<label>Résultat réel — jusqu\'où le match est allé</label>';
   const modeRow=document.createElement('div'); modeRow.style.cssText='display:flex;gap:6px;margin-bottom:8px';
   ['90','et','pen'].forEach(mo=>{
     const b=document.createElement('button'); b.className='btn ghost'; b.textContent=KO16_MODES[mo];
     b.style.cssText='padding:6px 10px;margin:0;'+(res.mode===mo?'background:var(--gold);color:var(--gold-ink);border-color:var(--gold)':'');
-    b.onclick=()=>{ ko16Results[num]=Object.assign({},ko16Results[num],{mode:mo}); renderPhases(); renderLB(); };
+    b.onclick=()=>{ RES[num]=Object.assign({},RES[num],{mode:mo}); renderPhases(); renderLB(); renderDay(); };
     modeRow.appendChild(b);
   });
   block.appendChild(modeRow);
   if(res.mode){
-    block.appendChild(ko16ScoreRow(num,'s90', res.mode==='90'?'Score (90 min)':"Score à 90' (nul)"));
-    if(res.mode==='et'||res.mode==='pen') block.appendChild(ko16ScoreRow(num,'set', res.mode==='et'?'Score fin prolongation':'Score fin prolongation (nul)'));
-    if(res.mode==='pen') block.appendChild(ko16ScoreRow(num,'pen','Tirs au but'));
+    block.appendChild(koScoreRow(rkey,num,'s90', res.mode==='90'?'Score (90 min)':"Score à 90' (nul)"));
+    if(res.mode==='et'||res.mode==='pen') block.appendChild(koScoreRow(rkey,num,'set', res.mode==='et'?'Score fin prolongation':'Score fin prolongation (nul)'));
+    if(res.mode==='pen') block.appendChild(koScoreRow(rkey,num,'pen','Tirs au but'));
     const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Effacer le résultat'; del.style.cssText='padding:6px 11px;margin-top:8px';
-    del.onclick=()=>{ delete ko16Results[num]; renderPhases(); renderLB(); };
+    del.onclick=()=>{ delete RES[num]; renderPhases(); renderLB(); renderDay(); };
     block.appendChild(del);
   }
   return block;
 }
+function koPhaseCard(r, m){
+  const res=KORES[r.key][m.num];
+  const card=document.createElement('div'); card.className='qcard'+(res&&res.mode?' answered':'');
+  const head=document.createElement('button'); head.className='q-head';
+  const resTxt=fmtKo16Res(res);
+  head.innerHTML='<span class="qpts">M'+m.num+'</span>'
+    +'<span class="qtxt">'+m.t1+' – '+m.t2+'</span>'
+    +'<span class="qok">'+(resTxt?resTxt:'')+'</span>';
+  head.onclick=()=>card.classList.toggle('open');
+  const body=document.createElement('div'); body.className='q-body';
+  if(adminMode) body.appendChild(koAdminBlock(r.key, m.num));
+  const grid=document.createElement('div'); grid.className='agrid'; grid.style.marginTop='2px';
+  DB.players.forEach(p=>{
+    const trio=(r.data.preds[p]||{})[m.num];
+    const pts=res?ko16Points(trio,res):0;
+    const cell=document.createElement('div'); cell.className='acell'+(pts?' ok':'')+(res&&!pts?' miss':''); cell.style.cursor='default';
+    if(res&&!pts) cell.style.opacity='.45';
+    cell.innerHTML='<div class="pname">'+p+'</div><div class="aval">'+fmtKo16(trio)+(pts?' <b>+'+pts+'</b>':'')+'</div>';
+    grid.appendChild(cell);
+  });
+  body.appendChild(grid);
+  card.appendChild(head); card.appendChild(body); return card;
+}
 function renderPhases(){
-  const wrap=document.getElementById('ko16-list'); if(!wrap) return;
+  const wrap=document.getElementById('ko-list'); if(!wrap) return;
   wrap.innerHTML='';
-  KO16.matches.forEach(m=>{
-    const res=ko16Results[m.num];
-    const card=document.createElement('div'); card.className='qcard'+(res&&res.mode?' answered':'');
-    const head=document.createElement('button'); head.className='q-head';
-    const resTxt=fmtKo16Res(res);
-    head.innerHTML='<span class="qpts">M'+m.num+'</span>'
-      +'<span class="qtxt">'+m.t1+' – '+m.t2+'</span>'
-      +'<span class="qok">'+(resTxt?resTxt:'')+'</span>';
-    head.onclick=()=>card.classList.toggle('open');
-    const body=document.createElement('div'); body.className='q-body';
-    if(adminMode) body.appendChild(ko16AdminBlock(m.num));
-    const grid=document.createElement('div'); grid.className='agrid'; grid.style.marginTop='2px';
-    DB.players.forEach(p=>{
-      const trio=(KO16.preds[p]||{})[m.num];
-      const pts=res?ko16Points(trio,res):0;
-      const cell=document.createElement('div'); cell.className='acell'+(pts?' ok':'')+(res&&!pts?' miss':''); cell.style.cursor='default';
-      if(res&&!pts) cell.style.opacity='.45';
-      cell.innerHTML='<div class="pname">'+p+'</div><div class="aval">'+fmtKo16(trio)+(pts?' <b>+'+pts+'</b>':'')+'</div>';
-      grid.appendChild(cell);
-    });
-    body.appendChild(grid);
-    card.appendChild(head); card.appendChild(body); wrap.appendChild(card);
+  KO_ROUNDS.forEach(r=>{
+    if(!r.data.matches || !r.data.matches.length) return;
+    const hd=document.createElement('div'); hd.textContent=r.label+' de finale';
+    hd.style.cssText='font-family:Bebas Neue;letter-spacing:.1em;color:var(--gold);margin:16px 2px 8px;font-size:1.1rem';
+    wrap.appendChild(hd);
+    r.data.matches.forEach(m=> wrap.appendChild(koPhaseCard(r,m)) );
   });
 }
 
@@ -1240,7 +1256,7 @@ document.getElementById('btn-publish').onclick=async()=>{
     for(const ph in koReal){ if(koReal[ph]&&koReal[ph].length>0) cleanKo[ph]=koReal[ph]; }
     const cleanKs={};
     for(const id in koScores){ if(Array.isArray(koScores[id])&&koScores[id].some(x=>x!=null)) cleanKs[id]=koScores[id]; }
-    const payload = JSON.stringify({r:clean,ca:correctAnswers,gs:cleanGs,ko:cleanKo,pd:podiumReal||null,ks:cleanKs,k16:ko16Results}, null, 2);
+    const payload = JSON.stringify({r:clean,ca:correctAnswers,gs:cleanGs,ko:cleanKo,pd:podiumReal||null,ks:cleanKs,k16:KORES.ko16,k8:KORES.ko8}, null, 2);
     const token = getGithubToken();
     if(token){
       const content = btoa(unescape(encodeURIComponent(payload)));
@@ -1331,7 +1347,7 @@ let _lastUpdateTime = null;
 function _formatTime(d){ const h=String(d.getHours()).padStart(2,'0'); const m=String(d.getMinutes()).padStart(2,'0'); const s=String(d.getSeconds()).padStart(2,'0'); return h+':'+m+':'+s; }
 function _updateLastUpdateUI(){ const el = document.getElementById('lastUpdate'); if(el) el.textContent = _lastUpdateTime ? 'Mise à jour : '+_formatTime(_lastUpdateTime) : '—'; }
 
-function _makeClean(obj){ const c={}; if(obj && obj.r) c.r = obj.r; else if(obj) c.r = obj; if(obj && obj.b) c.b = obj.b; else if(obj && obj.b===undefined) c.b = {}; if(obj){ c.ca=obj.ca||{}; c.gs=obj.gs||{}; c.ko=obj.ko||{}; c.pd=obj.pd||null; c.ks=obj.ks||{}; c.k16=obj.k16||{}; } return c; }
+function _makeClean(obj){ const c={}; if(obj && obj.r) c.r = obj.r; else if(obj) c.r = obj; if(obj && obj.b) c.b = obj.b; else if(obj && obj.b===undefined) c.b = {}; if(obj){ c.ca=obj.ca||{}; c.gs=obj.gs||{}; c.ko=obj.ko||{}; c.pd=obj.pd||null; c.ks=obj.ks||{}; c.k16=obj.k16||{}; c.k8=obj.k8||{}; } return c; }
 
 function _showRemoteBanner(remote){
   if(document.getElementById('remoteUpdate')) return;
@@ -1341,7 +1357,7 @@ function _showRemoteBanner(remote){
   div.innerHTML = 'Nouveaux résultats disponibles — <button id="btn-reload-remote" class="btn">Recharger</button> <button id="btn-apply-remote" class="btn ghost">Appliquer localement</button> <button id="btn-ignore-remote" class="btn ghost">Ignorer</button>';
   document.body.appendChild(div);
   document.getElementById('btn-reload-remote').onclick=()=>{ try{ localStorage.removeItem(SKEY); }catch(e){} location.reload(); };
-  document.getElementById('btn-apply-remote').onclick=()=>{ try{ results = Object.assign({}, remote.r); correctAnswers = Object.assign({}, remote.ca || {}); if(remote.gs) groupsReal=Object.assign({},remote.gs); if(remote.ko) koReal=Object.assign({},remote.ko); if(remote.pd) podiumReal=remote.pd; if(remote.ks) koScores=Object.assign({},remote.ks); if(remote.k16) ko16Results=Object.assign({},remote.k16); recalculateBonus(); persist(); renderDay(); renderEntry(); renderBonus(); renderLB(); renderPhases(); toast('Résultats appliqués'); }catch(e){} document.getElementById('remoteUpdate')?.remove(); };
+  document.getElementById('btn-apply-remote').onclick=()=>{ try{ results = Object.assign({}, remote.r); correctAnswers = Object.assign({}, remote.ca || {}); if(remote.gs) groupsReal=Object.assign({},remote.gs); if(remote.ko) koReal=Object.assign({},remote.ko); if(remote.pd) podiumReal=remote.pd; if(remote.ks) koScores=Object.assign({},remote.ks); if(remote.k16) KORES.ko16=Object.assign({},remote.k16); if(remote.k8) KORES.ko8=Object.assign({},remote.k8); recalculateBonus(); persist(); renderDay(); renderEntry(); renderBonus(); renderLB(); renderPhases(); toast('Résultats appliqués'); }catch(e){} document.getElementById('remoteUpdate')?.remove(); };
   document.getElementById('btn-ignore-remote').onclick=()=>{ document.getElementById('remoteUpdate')?.remove(); };
 }
 
